@@ -1,7 +1,3 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-
 { config, pkgs, ... }:
 
 {
@@ -14,20 +10,14 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-    networking.hostName = "nixosV"; # Define your hostname.
+    networking.hostName = "nixosV";
 
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Select internationalisation properties.
     i18n = {
   #   consoleFont = "Lat2-Terminus16";
       consoleKeyMap = "us";
       defaultLocale = "en_US.UTF-8";
     };
 
-  # Set your time zone.
     time.timeZone = "Europe/Bratislava";
 
   # List packages installed in system profile. To search, run:
@@ -46,25 +36,10 @@
       cabal-install
     ];
 
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  # programs.mtr.enable = true;
-  # programs.gnupg.agent = { enable = true; enableSSHSupport = true; };
-
-  # List services that you want to enable:
-
-  # Enable the OpenSSH daemon.
     services.openssh.enable = true;
     services.openssh.permitRootLogin = "no";
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
-
-#    documentation.enable = true;
-#    documentation.nixos.enable = true;
+    networking.firewall.enable = false;
 
     security.sudo = {
       enable = true;
@@ -79,6 +54,25 @@
       extraGroups = [ "wheel" ];
     };
 
-  system.stateVersion = "19.03";
+    system.stateVersion = "19.03";
+
+    containers.test1 = {
+      privateNetwork = true;
+      hostAddress = "172.30.107.51";
+      localAddress = "172.30.107.52";
+      config = { config, pkgs, ... }: {
+        networking.firewall.enable = false;
+        services.openssh.enable = true;
+        services.openssh.permitRootLogin = "no";
+        users.extraUsers.test = {
+          isNormalUser = true;
+          createHome = true;
+          uid = 1005;
+          group = "users";
+        #  extraGroups = [ "wheel" ];
+          hashedPassword = "$6$85dLBsbks1$oESOLhS5t7gowuRvUOj/UmyTVFRNws39ZGChbdbgJW0/FBOfXQUCKeb6kiTDMRaO7oi0TM0evfisNLzb85KbP1";
+        };
+      };
+    };
 
 }
