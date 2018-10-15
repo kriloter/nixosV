@@ -39,7 +39,10 @@
     services.openssh.enable = true;
     services.openssh.permitRootLogin = "no";
 
-    networking.firewall.enable = false;
+    networking.firewall.enable = true;
+    networking.nat.enable = true;
+    networking.nat.internalInterfaces = ["ve-test1"];
+    networking.nat.externalInterface = "eth0";
 
     security.sudo = {
       enable = true;
@@ -57,9 +60,10 @@
     system.stateVersion = "19.03";
 
     containers.test1 = {
+      autoStart = true;
       privateNetwork = true;
       hostAddress = "172.30.107.51";
-      localAddress = "172.30.107.52";
+      localAddress = "192.168.123.51";
       config = { config, pkgs, ... }: {
         networking.firewall.enable = false;
         services.openssh.enable = true;
@@ -72,6 +76,49 @@
         #  extraGroups = [ "wheel" ];
           hashedPassword = "$6$85dLBsbks1$oESOLhS5t7gowuRvUOj/UmyTVFRNws39ZGChbdbgJW0/FBOfXQUCKeb6kiTDMRaO7oi0TM0evfisNLzb85KbP1";
         };
+      };
+    };
+
+    containers.mariadb1 = {
+      autoStart = true;
+      privateNetwork = true;
+      hostAddress = "172.30.107.51";
+      localAddress = "192.168.123.50";
+      config = { config, pkgs, ... }: {
+        networking.firewall.enable = false;
+        services.mysql = {
+          enable = true;
+          package = pkgs.mariadb;
+        };
+      };
+    };
+
+    containers.nginx1 = {
+      autoStart = true;
+      privateNetwork = true;
+      hostAddress = "172.30.107.51";
+      localAddress = "192.168.123.52";
+      config = { config, pkgs, ... }: {
+        networking.firewall.enable = false;
+        services.nginx = {
+          recommendedGzipSettings = true;
+          recommendedOptimisation = true;
+          recommendedProxySettings = true;
+          recommendedTlsSettings = true;
+        #  appendHttpConfig = "server_names_hash_bucket_size 64;";
+          enable = true;
+        };
+        services.phpfpm.poolConfigs.mypool = ''
+        listen = 127.0.0.1:9000
+        user = nginx
+        group = nginx
+        pm = dynamic
+        pm.max_children = 5
+        pm.start_servers = 2 
+        pm.min_spare_servers = 1 
+        pm.max_spare_servers = 3
+        pm.max_requests = 500
+        '';
       };
     };
 
