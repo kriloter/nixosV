@@ -39,10 +39,16 @@
     services.openssh.enable = true;
     services.openssh.permitRootLogin = "no";
 
-    networking.firewall.enable = true;
+    networking.firewall = {
+      enable = false;
+#      allowedTCPPorts = [ 80 ];
+    };
+   
+/*
     networking.nat.enable = true;
-    networking.nat.internalInterfaces = ["ve-test1"];
+    networking.nat.internalInterfaces = ["ve-test1" "ve-nginx1"];
     networking.nat.externalInterface = "eth0";
+*/
 
     security.sudo = {
       enable = true;
@@ -59,6 +65,29 @@
 
     system.stateVersion = "19.03";
 
+    services.httpd = {
+      enable = true;
+      adminAddr = "kriloter@kriloter.com";
+      documentRoot = "/var/www";
+    };
+
+    services.mysql = {
+      enable = true;
+      package = pkgs.mariadb;
+    };
+
+    services.vsftpd = {
+      enable = true;
+      localUsers = true;
+      chrootlocalUser = true;
+      writeEnable = true;
+      extraConfig = "allow_writeable_chroot=YES";
+    };
+
+
+
+
+/*
     containers.test1 = {
       autoStart = true;
       privateNetwork = true;
@@ -121,5 +150,23 @@
         '';
       };
     };
+
+    containers.apache1 = {
+      autoStart = true;
+      privateNetwork = true;
+      hostAddress = "172.30.107.51";
+      localAddress = "192.168.123.53";
+      config = { config, pkgs, ... }: {
+        networking.firewall.enable = false;
+        services.httpd = {
+          enable = true;
+          user = "wwwtest";
+          group = "wwwtest";
+          adminAddr = "kriloter@kriloter.com";
+#          documentRoot = "/var/www";
+        };
+      };
+    };
+*/
 
 }
