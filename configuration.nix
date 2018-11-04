@@ -104,8 +104,8 @@
       name = "vsftpd";
       logFailures = true;
       text = ''
-        auth      required  /nix/store/a9ms7xygw024q0dzx58wdg05crqba302-pam_pgsql-0.7.3.2/lib/security/pam_pgsql.so  config_file=/etc/pam_pgsql_vsftpd.conf
-        account   required  /nix/store/a9ms7xygw024q0dzx58wdg05crqba302-pam_pgsql-0.7.3.2/lib/security/pam_pgsql.so  config_file=/etc/pam_pgsql_vsftpd.conf
+        auth      required  ${pkgs.pam_pgsql}/lib/security/pam_pgsql.so  config_file=/etc/pam_pgsql_vsftpd.conf
+        account   required  ${pkgs.pam_pgsql}/lib/security/pam_pgsql.so  config_file=/etc/pam_pgsql_vsftpd.conf
       '';
     };
 
