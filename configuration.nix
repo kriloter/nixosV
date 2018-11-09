@@ -30,7 +30,6 @@
       nvi
       mkpasswd
       lftp
-      git
       cabal2nix
       nix-prefetch-git
       cabal-install
@@ -80,7 +79,26 @@
       enable = true;
       adminAddr = "kriloter@kriloter.com";
       documentRoot = "/var/www";
+      extraModules = [
+        "proxy_fcgi"
+      ];
+      extraConfig = ''
+        ProxyPassMatch ^/(.*\.php)$ fcgi://127.0.0.1:9000/var/www/$1
+      '';
     };
+
+    services.phpfpm.poolConfigs.mypool = ''
+      listen = 127.0.0.1:9000
+      user = wwwrun
+      group = wwwrun
+      pm = dynamic
+      pm.max_children = 5
+      pm.start_servers = 2
+      pm.min_spare_servers = 1
+      pm.max_spare_servers = 3
+      pm.max_requests = 500
+    '';
+
 
 /*
     services.mysql = {
@@ -105,32 +123,39 @@
       logFailures = true;
       text = ''
         auth      required  ${pkgs.pam_pgsql}/lib/security/pam_pgsql.so  config_file=/etc/pam_pgsql_vsftpd.conf
-        account   required  ${pkgs.pam_pgsql}/lib/security/pam_pgsql.so  config_file=/etc/pam_pgsql_vsftpd.conf
+        account	  required  ${pkgs.pam_pgsql}/lib/security/pam_pgsql.so  config_file=/etc/pam_pgsql_vsftpd.conf
+#        session   required  pam_mkhomedir.so  umask=0022
       '';
     };
+#    security.pam.services.vsftpd.makeHomeDir = true;
 
     services.vsftpd = {
       enable = true;
       anonymousUser = false;
+      anonymousUserNoPassword = false;
+      anonymousUploadEnable = false;
+      anonymousMkdirEnable = false;
+      chrootlocalUser = true;
+      userlistEnable = false;
+      userlistDeny = false;
+      forceLocalLoginsSSL = false;
+      forceLocalDataSSL = false;
+      portPromiscuous = false;
       localUsers = true;
       writeEnable = true;
-      chrootlocalUser = true;
+      ssl_tlsv1 = true;
+      ssl_sslv2 = false;
+      ssl_sslv3 = false;
       extraConfig = ''
-        listen=YES
-        virtual_use_local_privs=YES
-        connect_from_port_20=YES
-        secure_chroot_dir=/var/empty/
         pam_service_name=vsftpd
         guest_enable=YES
-        user_sub_token=$USER
-        local_root=/home/vsftpuser/$USER
-        hide_ids=YES
-        ftpd_banner=Welcome to FTP server
-        file_open_mode=0770
-        local_umask=022
-        anon_mkdir_write_enable=NO
         guest_username=vsftpuser
+        local_root=/home/vsftpuser/$USER
+        user_sub_token=$USER
+        virtual_use_local_privs=YES
         allow_writeable_chroot=YES
+        hide_ids=YES
+        connect_from_port_20=YES
       '';
     };
 
