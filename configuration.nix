@@ -10,7 +10,21 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-    networking.hostName = "nixosV";
+#    networking.hostName = "nixosV";
+    networking = {
+      hostName = "nixosV";
+      interfaces.eth0.ipv4 = {
+        addresses = [{
+          address = "172.30.107.53";
+          prefixLength = 28;
+        }];
+      };
+      defaultGateway = {
+        address = "172.30.107.49";
+        interface = "eth0";
+      };
+      nameservers = [ "172.30.107.49" ];
+    };
 
     i18n = {
   #   consoleFont = "Lat2-Terminus16";
@@ -36,6 +50,7 @@
       tcp_wrappers
       pam_pgsql
       libgcrypt
+      mod_fastcgi
     ];
 
     services.openssh.enable = true;
@@ -83,12 +98,19 @@
         "proxy_fcgi"
       ];
       extraConfig = ''
-        ProxyPassMatch ^/(.*\.php)$ fcgi://127.0.0.1:9000/var/www/$1
+        <Directory /var/www> 
+          Options FollowSymlinks
+          DirectoryIndex index.php
+          AllowOverride All 
+        </Directory>
+        <FilesMatch "\.php$">
+            SetHandler "proxy:fcgi://127.0.0.1/:8000"
+        </FilesMatch>
       '';
     };
 
     services.phpfpm.poolConfigs.mypool = ''
-      listen = 127.0.0.1:9000
+      listen = 127.0.0.1:8000
       user = wwwrun
       group = wwwrun
       pm = dynamic
